@@ -10,6 +10,11 @@ import {
 import "leaflet/dist/leaflet.css";
 import "./App.css";
 
+// Use the deployed Render backend in production.
+// Locally, Vite falls back to the local FastAPI server.
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 
 function MapFocus({ incident }) {
   const map = useMap();
@@ -58,7 +63,7 @@ function App() {
 
   useEffect(() => {
 
-    fetch("http://127.0.0.1:8000/api/incidents")
+    fetch(`${API_BASE_URL}/api/incidents`)
 
       .then((response) => response.json())
 
@@ -84,30 +89,30 @@ function App() {
   }, []);
 
   // ============================================================
-// LOAD INCIDENT LOCATION
-// ============================================================
+  // LOAD INCIDENT LOCATION
+  // ============================================================
 
-useEffect(() => {
-  const loadLocation = async () => {
-    if (!selectedIncident?.lat || !selectedIncident?.lng) return;
+  useEffect(() => {
+    const loadLocation = async () => {
+      if (!selectedIncident?.lat || !selectedIncident?.lng) return;
 
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/location?lat=${selectedIncident.lat}&lng=${selectedIncident.lng}`
-      );
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/location?lat=${selectedIncident.lat}&lng=${selectedIncident.lng}`
+        );
 
-      const data = await response.json();
+        const data = await response.json();
 
-      setIncidentLocation(data.location || "Location unavailable");
+        setIncidentLocation(data.location || "Location unavailable");
 
-    } catch (error) {
-      console.log("Location lookup failed:", error);
-      setIncidentLocation("Location unavailable");
-    }
-  };
+      } catch (error) {
+        console.log("Location lookup failed:", error);
+        setIncidentLocation("Location unavailable");
+      }
+    };
 
-  loadLocation();
-}, [selectedIncident]);
+    loadLocation();
+  }, [selectedIncident]);
 
   // =====================================================
   // SIMULATION
@@ -261,9 +266,10 @@ useEffect(() => {
 
   };
 
+
   const getRiskBreakdown = (incident) => {
     if (!incident) return [];
-  
+
     return [
       {
         label: "Thermal Intensity",
@@ -303,6 +309,7 @@ useEffect(() => {
       },
     ];
   };
+
 
   const getReasons = (incident) => {
 
@@ -352,7 +359,7 @@ useEffect(() => {
     try {
 
       await fetch(
-        `http://127.0.0.1:8000/api/alerts/${selectedIncident.id}`,
+        `${API_BASE_URL}/api/alerts/${selectedIncident.id}`,
         {
           method: "POST",
         }
@@ -706,10 +713,10 @@ useEffect(() => {
               className="map"
             >
 
-<TileLayer
-  attribution="Tiles &copy; Esri"
-  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-/>
+              <TileLayer
+                attribution="Tiles &copy; Esri"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              />
 
 
               <MapFocus
@@ -874,7 +881,6 @@ useEffect(() => {
                     {label}
 
                   </button>
-
                 )
               )}
 
@@ -907,7 +913,6 @@ useEffect(() => {
             </div>
 
 
-           
           </div>
 
         </section>
@@ -933,13 +938,13 @@ useEffect(() => {
               </h2>
 
               <div className="incident-location">
-  📍 {incidentLocation || "Detecting location..."}
-</div>
+                📍 {incidentLocation || "Detecting location..."}
+              </div>
 
-<div className="incident-coordinates">
-  {selectedIncident.lat?.toFixed(4)}° N&nbsp;&nbsp;
-  {selectedIncident.lng?.toFixed(4)}° E
-</div>
+              <div className="incident-coordinates">
+                {selectedIncident.lat?.toFixed(4)}° N&nbsp;&nbsp;
+                {selectedIncident.lng?.toFixed(4)}° E
+              </div>
 
             </div>
 
